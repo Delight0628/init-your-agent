@@ -4,8 +4,16 @@ description: >
   AI Agent 上下文初始化技能。自动检测本机开发环境并生成标准化上下文文件。
   涵盖系统硬件、开发工具链、AI 代理、MCP 服务器、运行时服务、用户偏好六大维度。
 version: 1.0.0
-author: init_your_agent
+author: Delight0628
+license: MIT
 trigger: manual
+tags:
+  - ai-agent
+  - context
+  - environment
+  - detection
+  - mcp
+  - devtools
 ---
 
 # init-your-agent
@@ -51,7 +59,7 @@ bash scripts/generate-context.sh --batch
 ## 异常处理
 
 | 错误类型 | 处理策略 |
-|---------|---------|  
+|---------|---------|
 | 脚本执行失败 | 显示详细错误信息，尝试手动检测 |
 | 命令不存在 | 跳过该探测项，标记为 `unavailable` |
 | 权限不足 | 记录警告，继续执行其他探测 |
