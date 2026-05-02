@@ -1,0 +1,178 @@
+# =============================================================================
+# default-context.yaml - init-your-agent 标准上下文模板
+# =============================================================================
+# 此文件定义了上下文输出的标准结构。
+# 实际运行时，generate-context.sh/ps1 会生成 context-output.json/yaml。
+# =============================================================================
+
+meta:
+  timestamp: "2026-01-01T00:00:00Z"       # ISO 8601 时间戳
+  version: "1.0.0"                         # 上下文格式版本
+  generator: "init-your-agent"             # 生成器标识
+  mode: "batch"                            # batch | interactive
+
+# =============================================================================
+# 维度一：系统硬件与基础环境
+# =============================================================================
+system:
+  os:
+    name: "Ubuntu"                         # 操作系统名称
+    version: "22.04"                       # 版本号
+    kernel: "5.15.0"                       # 内核版本
+    arch: "x86_64"                         # CPU 架构
+    
+  cpu:
+    model: "Intel Core i7-12700H"          # CPU 型号
+    cores: 14                              # 核心数
+    threads: 20                            # 线程数 (Windows)
+    
+  memory:
+    total_gb: 32                           # 总内存 (GB)
+    
+  gpu:                                     # GPU 列表 (可能为空)
+    - model: "NVIDIA GeForce RTX 3070 Ti"
+      vram_gb: 8
+    # - model: "Apple M2 Pro"             # Apple Silicon 无独立显存
+    #   vram_gb: 0
+    
+  disk:                                    # 磁盘分区列表
+    - mount: "/"
+      total_gb: 512
+      free_gb: 256
+    - mount: "/home"
+      total_gb: 1000
+      free_gb: 800
+      
+  shell: "bash"                            # 默认 Shell 类型
+  network_proxy: "http://127.0.0.1:7890"  # 网络代理配置 (脱敏后)
+
+# =============================================================================
+# 维度二：开发栈与工具链
+# =============================================================================
+devstack:
+  languages:                               # 已安装的编程语言及版本
+    node: "20.11.0"
+    python: "3.12.2"
+    go: "1.21.5"
+    rust: "1.75.0"
+    java: "17.0.9"
+    ruby: "3.2.2"
+    php: "8.2.10"
+    dart: "3.1.0"
+    dotnet: "8.0.100"
+    
+  package_managers:                        # 包管理器
+    npm: "10.2.4"
+    yarn: "1.22.22"
+    pnpm: "8.10.5"
+    pip: "24.0"
+    cargo: "1.75.0"
+    brew: "3.6.16"
+    chocolatey: "2.2.0"
+    winget: "1.6.3400"
+    uv: "0.1.0"
+    poetry: "1.7.1"
+    deno: "1.39.0"
+    bun: "1.0.15"
+    
+  editors:                                 # 已安装的编辑器
+    - "VS Code"
+    - "Vim"
+    - "Neovim"
+    
+  linters_formatters:                      # Linter 和 Formatter
+    eslint: "installed"
+    prettier: "installed"
+    black: "installed"
+    ruff: "installed"
+    gofmt: "installed"
+    rustfmt: "installed"
+    
+  git:
+    version: "2.43.0"
+    user: "username"                       # 从 git config 读取
+    email: "user@email.com"                # 从 git config 读取
+    remote: "git@github.com:user/repo.git" # 当前仓库远程
+    ssh_keys:                              # 可用的 SSH 密钥类型
+      - "rsa"
+      - "ed25519"
+    gh_cli: "installed"                    # GitHub CLI 状态
+
+# =============================================================================
+# 维度三：运行时依赖与服务
+# =============================================================================
+services:
+  docker:
+    status: "running"                      # running | stopped | not_installed
+    version: "24.0.7"
+    compose_version: "v2.24.0"
+    running_containers: 5                  # 运行中的容器数
+    total_images: 23                       # 本地镜像总数
+    
+  kubernetes:
+    kubectl_version: "1.28.2"
+    cluster_status: "connected"            # connected | disconnected
+    helm: "installed"                      # installed | not_installed
+    
+  databases:
+    redis: "connected"                     # connected | disconnected | not_installed
+    postgresql: "disconnected"
+    mysql: "not_installed"
+    mongodb: "disconnected"
+    sqlite: "installed:3.42.0"
+    
+  web_servers:
+    nginx: "configured:1.24.0"
+    apache: "not_installed"
+    caddy: "not_installed"
+    
+  ports_in_use:                            # 常用端口占用情况
+    "6379": "1234"                         # port: pid
+    "5432": "1235"
+    "3000": "1236"
+    "8080": "1237"
+
+# =============================================================================
+# 维度四：用户画像与协作偏好
+# =============================================================================
+user:
+  github:
+    username: "username"                   # GitHub 用户名
+    email: "user@email.com"                # Commit 邮箱
+    
+  website: "https://example.com"           # 个人网站 (可选)
+  
+  preferences:
+    code_style: "prettier"                 # 首选代码格式化器
+    indent: "space_2"                      # 缩进偏好
+    quotes: "single"                       # 引号偏好
+    
+    commit_template: "conventional"        # Conventional Commits | semantic | custom
+    
+    frameworks:                            # 框架偏好列表
+      frontend:
+        - "React"
+        - "Next.js"
+      backend:
+        - "Node.js"
+        - "FastAPI"
+      testing:
+        - "Jest"
+        - "pytest"
+        
+    permissions:
+      script_execution: "project_only"     # none | project_only | full
+      sensitivity: "auto_mask"             # auto_mask | metadata_only | full
+
+# =============================================================================
+# 调试信息 (仅内部使用，不对外暴露)
+# =============================================================================
+_debug:
+  detection_time_ms: 1250                  # 总探测耗时 (毫秒)
+  cache_hit: false                         # 是否使用缓存
+  skipped_items:                           # 跳过的探测项
+    - reason: "command_not_found"
+      item: "docker"
+    - reason: "permission_denied"
+      item: "firewall_status"
+  raw_output_truncated: true               # 原始输出是否被截断
