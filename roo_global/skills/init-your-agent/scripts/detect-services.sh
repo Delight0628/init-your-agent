@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # =============================================================================
 # detect-services.sh - 运行时依赖与服务扫描脚本
 # 平台: Linux / macOS
@@ -7,13 +7,8 @@
 
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
+log_info()  { echo "[INFO] $1" >&2; }
+log_warn()  { echo "[WARN] $1" >&2; }
 
 safe_exec() {
     local cmd="$1"
@@ -23,6 +18,15 @@ safe_exec() {
         echo "$result"
     else
         echo "$fallback"
+    fi
+}
+
+detect_version() {
+    local cmd="$1"
+    if command -v "$cmd" &>/dev/null; then
+        "$cmd" --version 2>/dev/null | head -1 | awk '{print $NF}' || echo "unavailable"
+    else
+        echo "not_installed"
     fi
 }
 
@@ -36,7 +40,7 @@ detect_docker() {
     fi
     
     local version compose_version
-    version=$(detect_version "docker" "docker --version")
+    version=$(detect_version "docker")
     compose_version="not_installed"
     
     if command -v docker-compose &>/dev/null; then
@@ -107,31 +111,6 @@ detect_kubernetes() {
 EOF
 }
 
-# 检测单个数据库
-detect_database() {
-    local name="$1"
-    local cmd="$2"
-    local ping_cmd="${3:-}"
-    
-    if ! command -v "$cmd" &>/dev/null; then
-        echo "not_installed"
-        return
-    fi
-    
-    local version
-    version=$(detect_version "$cmd")
-    
-    if [[ -n "$ping_cmd" ]] && command -v "$ping_cmd" &>/dev/null; then
-        if eval "$ping_cmd" &>/dev/null; then
-            echo "connected:$version"
-        else
-            echo "disconnected:$version"
-        fi
-    else
-        echo "installed:$version"
-    fi
-}
-
 # 探测数据库服务
 detect_databases() {
     log_info "探测数据库服务..."
@@ -153,7 +132,7 @@ detect_databases() {
     
     # PostgreSQL
     if command -v psql &>/dev/null; then
-        if pg_isready &>/dev/null 2>&1; then
+        if pg_isready &>/dev/null; then
             postgres_status="connected"
         else
             postgres_status="disconnected"

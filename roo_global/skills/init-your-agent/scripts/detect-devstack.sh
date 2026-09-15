@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # =============================================================================
 # detect-devstack.sh - 开发栈与工具链检测脚本
 # 平台: Linux / macOS
@@ -7,13 +7,8 @@
 
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
+log_info()  { echo "[INFO] $1" >&2; }
+log_warn()  { echo "[WARN] $1" >&2; }
 
 safe_exec() {
     local cmd="$1"
@@ -82,10 +77,10 @@ detect_languages() {
         first=false
     fi
     
-    # Java
+    # Java (兼容 macOS 的 sed，避免 grep -oP)
     local java_ver
-    java_ver=$(detect_version "java" 2>&1 | grep -oP 'version "\K[^"]+' || echo "not_installed")
-    if [[ "$java_ver" != "not_installed" ]]; then
+    java_ver=$(java -version 2>&1 | head -1 | sed -n 's/.*version "\([^"]*\)".*/\1/p')
+    if [[ -n "$java_ver" ]]; then
         [[ "$first" == "false" ]] && langs+=","
         langs+="\"java\":\"$java_ver\""
         first=false
@@ -250,7 +245,7 @@ detect_git() {
         for key in "$HOME/.ssh/"id_*; do
             if [[ -f "$key" ]]; then
                 local key_name
-                key_name=$(basename "$key" | sed 's/id_-//;s/\.ssh//')
+                key_name=$(basename "$key" | sed 's/^id_//;s/\.pub$//')
                 [[ "$key_first" == "false" ]] && key_list+=","
                 key_list+="\"$key_name\""
                 key_first=false

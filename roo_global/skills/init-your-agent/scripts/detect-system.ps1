@@ -1,7 +1,8 @@
-﻿# detect-system.ps1 - System detection (Windows) - Pure JSON output only
+# detect-system.ps1 - System detection (Windows) - Pure JSON output only
 [CmdletBinding()]
 param()
 $OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 function Detect-OS {
     $os = Get-CimInstance Win32_OperatingSystem
@@ -28,7 +29,8 @@ function Detect-Disk {
     $disks = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3"
     $list = @()
     foreach ($d in $disks) {
-        $list += @{ mount = "$($d.DeviceID):"; total_gb = [math]::Round($d.Size / 1GB, 0); free_gb = [math]::Round($d.FreeSpace / 1GB, 0) }
+        # DeviceID already includes colon (e.g. "C:"), don't append another
+        $list += @{ mount = $d.DeviceID; total_gb = [math]::Round($d.Size / 1GB, 0); free_gb = [math]::Round($d.FreeSpace / 1GB, 0) }
     }
     ,@($list)
 }

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # =============================================================================
 # detect-system.sh - 系统硬件与基础环境探测脚本
 # 平台: Linux / macOS
@@ -7,16 +7,10 @@
 
 set -euo pipefail
 
-# 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# 日志函数
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+# 日志函数 (stderr only)
+log_info()  { echo "[INFO] $1" >&2; }
+log_warn()  { echo "[WARN] $1" >&2; }
+log_error() { echo "[ERROR] $1" >&2; }
 
 # 安全执行命令，失败返回 fallback 值
 safe_exec() {
@@ -99,7 +93,7 @@ detect_memory() {
         total_gb=0
     fi
     
-    echo "$total_gb"
+    echo "{\"total_gb\":$total_gb}"
 }
 
 # 探测 GPU 信息
@@ -192,7 +186,7 @@ detect_shell() {
         shell_name=$(basename "$SHELL" 2>/dev/null || echo "unknown")
     fi
     
-    echo "$shell_name"
+    echo "{\"primary_shell\":\"$shell_name\",\"wsl_distros\":[]}"
 }
 
 # 探测网络代理配置
@@ -215,8 +209,11 @@ detect_network() {
         proxy="$proxy,HTTPS_PROXY=$HTTPS_PROXY"
     fi
     
-    [[ -z "$proxy" ]] && proxy="none"
-    echo "$proxy"
+    if [[ -z "$proxy" ]]; then
+        echo "{\"proxy\":\"none\"}"
+    else
+        echo "{\"proxy\":\"$proxy\"}"
+    fi
 }
 
 # 主探测函数
@@ -235,16 +232,16 @@ main() {
     shell=$(detect_shell)
     network=$(detect_network)
     
-    # 输出 JSON
+    # 输出 JSON (Schema 与 Windows 版一致)
     cat <<EOF
 {
   "os": $os,
   "cpu": $cpu,
-  "memory_gb": $memory,
+  "memory": $memory,
   "gpu": $gpu,
   "disk": $disk,
-  "shell": "$shell",
-  "network_proxy": "$network"
+  "shell": $shell,
+  "network": $network
 }
 EOF
     

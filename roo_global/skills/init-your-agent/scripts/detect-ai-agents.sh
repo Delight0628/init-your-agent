@@ -7,68 +7,67 @@
 
 set -euo pipefail
 
-# 检测单个代理并添加到列表
-# 参数: $1=name $2=cli $3=config_paths $4=icon
+# 检测单个代理，成功输出 JSON 并返回 0，失败返回 1
+# 参数: $1=name $2=cli $3=config_path $4=icon
 add_agent() {
-    local name="$1" cmd="$2" config_paths="${3:-}" icon="${4:-}"
+    local name="$1" cmd="$2" config_path="${3:-}" icon="${4:-}"
     
-    if command -v "$cmd" &>/dev/null; then
-        local version
-        version=$("$cmd" --version 2>/dev/null | head -1 | sed 's/.*version\s*//i' | awk '{print $1}' | xargs || echo "latest")
-        
-        local config_status="no_config"
-        if [[ -n "$config_paths" ]]; then
-            IFS=':' read -ra PATHS <<< "$config_paths"
-            for path in "${PATHS[@]}"; do
-                path="${path/#\~/$HOME}"
-                path=$(eval echo "$path" 2>/dev/null || echo "$path")
-                if [[ -d "$path" ]] || [[ -f "$path" ]]; then
-                    config_status="configured"
-                    break
-                fi
-            done
-        fi
-        
-        echo "{\"name\":\"$name\",\"cli\":\"$cmd\",\"version\":\"$version\",\"config_status\":\"$config_status\",\"icon\":\"$icon\"}"
-        return 0
+    if ! command -v "$cmd" &>/dev/null; then
+        return 1
     fi
-    return 1
+    
+    local version
+    version=$("$cmd" --version 2>/dev/null | head -1 | sed 's/.*version\s*//i' | awk '{print $1}' | xargs || echo "unknown")
+    
+    local config_status="no_config"
+    if [[ -n "$config_path" && -e "$config_path" ]]; then
+        config_status="configured"
+    fi
+    
+    printf '{"name":"%s","cli":"%s","version":"%s","config_status":"%s","icon":"%s"}' \
+        "$name" "$cmd" "$version" "$config_status" "$icon"
+    return 0
 }
 
 detect_all_agents() {
-    local agents="["
-    local first=true
+    local agents=()
     
-    # 定义要检测的 AI 代理: name:cli:config_paths:icon
+    # name|cli|config_path|icon — 用 | 分隔避免路径中的冒号冲突
     local agents_list=(
-        "Claude Code:claude:~/.claude:~/.claude/settings.json:\U0001F525"
-        "Codex CLI:codex:~/.config/codex:~/.codex/config.yaml:\U0001F9EA"
-        "GitHub Copilot:gh:~/.config/github-cli:\U0001F43B"
-        "Cursor:cursor:~/.cursor:\U0001F5A5"
-        "Continue:continue:~/.continue:\U0001F517"
-        "Hermes:hermes:~/.hermes:\U0001F985"
-        "OpenClaw:openclaw:~/.openclaw:\U0001F431"
-        "OpenCode:opencode:~/.opencode:\U0001F4BB"
-        "Aider:aider:~/.aider:\U0001F916"
-        "Codeium CLI:codeium:~/.codeium:\U0001F48E"
-        "Amazon Q:q:~/.q:\U0001F389"
-        "Roo Code:roo:~/.roo:\U0001F9E9"
-        "Windsurf:windsurf:~/.windsurf:\U0001F3C3"
-        "Ollama:ollama:~/.ollama:\U0001F999"
-        "LM Studio:lmstudio::\U0001F3CA"
+        "Claude Code|claude|$HOME/.claude|claude"
+        "Codex CLI|codex|$HOME/.config/codex|codex"
+        "GitHub Copilot|gh|$HOME/.config/github-cli|gh"
+        "Cursor|cursor|$HOME/.cursor|cursor"
+        "Continue|continue|$HOME/.continue|continue"
+        "Hermes|hermes|$HOME/.hermes|hermes"
+        "OpenCode|opencode|$HOME/.opencode|opencode"
+        "Aider|aider|$HOME/.aider|aider"
+        "Amazon Q|q|$HOME/.q|q"
+        "Roo Code|roo|$HOME/.roo|roo"
+        "Windsurf|windsurf|$HOME/.windsurf|windsurf"
+        "Ollama|ollama|$HOME/.ollama|ollama"
+        "MiMo|mimo|$HOME/.mimo|mimo"
     )
     
     for entry in "${agents_list[@]}"; do
-        IFS=':' read -r name cmd config_paths icon <<< "$entry"
-        if add_agent "$name" "$cmd" "$config_paths" "$icon" 2>/dev/null; then
-            [[ "$first" == "false" ]] && agents+=","
-            agents+="$(add_agent "$name" "$cmd" "$config_paths" "$icon")"
-            first=false
+        local name cmd config_path icon
+        IFS='|' read -r name cmd config_path icon <<< "$entry"
+        local result
+        if result=$(add_agent "$name" "$cmd" "$config_path" "$icon"); then
+            agents+=("$result")
         fi
     done
     
-    agents+="]"
-    echo "$agents"
+    # 组装 JSON 数组
+    local json="["
+    local first=true
+    for a in "${agents[@]}"; do
+        if [[ "$first" == "false" ]]; then json+=","; fi
+        json+="$a"
+        first=false
+    done
+    json+="]"
+    echo "$json"
 }
 
 # 检测 AI 代理的活跃会话

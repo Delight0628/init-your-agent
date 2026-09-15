@@ -1,27 +1,35 @@
-﻿# detect-ai-agents.ps1 - AI agent detection (Windows) - Pure JSON output only
+# detect-ai-agents.ps1 - AI agent detection (Windows) - Pure JSON output only
 [CmdletBinding()]
 param()
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 function Test-Command { param([string]$Name) $null -ne (Get-Command $Name -ErrorAction SilentlyContinue) }
 function Get-Version {
     param([string]$Name, [string]$Flag = "--version")
-    try { & $Name $Flag 2>$null | Select-Object -First 1 } catch { "unknown" }
+    try {
+        $raw = & $Name $Flag 2>$null | Select-Object -First 1
+        if (-not $raw) { return "unknown" }
+        if ($raw -match '(\d+\.\d+(\.\d+)*)') { return $Matches[1] }
+        return ($raw -split '\s+')[-1]
+    } catch { return "unknown" }
 }
 
 $agents = @()
 $agentDefs = @(
-    @{ name="Claude Code"; cli="claude"; icon="fire"; cfg="$HOME\.claude" },
-    @{ name="Codex CLI"; cli="codex"; icon="flask"; cfg="$HOME\.config\codex" },
-    @{ name="GitHub Copilot"; cli="gh"; icon="bolt"; cfg="$HOME\.config\github-cli" },
-    @{ name="Cursor"; cli="cursor"; icon="monitor"; cfg="$HOME\.cursor" },
-    @{ name="Continue"; cli="continue"; icon="link"; cfg="$HOME\.continue" },
-    @{ name="Hermes"; cli="hermes"; icon="eagle"; cfg="$HOME\.hermes" },
-    @{ name="OpenCode"; cli="opencode"; icon="laptop"; cfg="$HOME\.opencode" },
-    @{ name="Aider"; cli="aider"; icon="robot"; cfg="$HOME\.aider" },
-    @{ name="Amazon Q"; cli="q"; icon="package"; cfg="$HOME\.q" },
-    @{ name="Roo Code"; cli="roo"; icon="puzzle"; cfg="$HOME\.roo" },
-    @{ name="Windsurf"; cli="windsurf"; icon="surf"; cfg="$HOME\.windsurf" },
-    @{ name="Ollama"; cli="ollama"; icon="llama"; cfg="$HOME\.ollama" }
+    @{ name="Claude Code"; cli="claude"; icon="claude"; cfg="$HOME\.claude" },
+    @{ name="Codex CLI"; cli="codex"; icon="codex"; cfg="$HOME\.config\codex" },
+    @{ name="GitHub Copilot"; cli="gh"; icon="gh"; cfg="$HOME\.config\github-cli" },
+    @{ name="Cursor"; cli="cursor"; icon="cursor"; cfg="$HOME\.cursor" },
+    @{ name="Continue"; cli="continue"; icon="continue"; cfg="$HOME\.continue" },
+    @{ name="Hermes"; cli="hermes"; icon="hermes"; cfg="$HOME\.hermes" },
+    @{ name="OpenCode"; cli="opencode"; icon="opencode"; cfg="$HOME\.opencode" },
+    @{ name="Aider"; cli="aider"; icon="aider"; cfg="$HOME\.aider" },
+    @{ name="Amazon Q"; cli="q"; icon="q"; cfg="$HOME\.q" },
+    @{ name="Roo Code"; cli="roo"; icon="roo"; cfg="$HOME\.roo" },
+    @{ name="Windsurf"; cli="windsurf"; icon="windsurf"; cfg="$HOME\.windsurf" },
+    @{ name="Ollama"; cli="ollama"; icon="ollama"; cfg="$HOME\.ollama" },
+    @{ name="MiMo"; cli="mimo"; icon="mimo"; cfg="$HOME\.mimo" }
 )
 foreach ($a in $agentDefs) {
     if (Test-Command $a.cli) {

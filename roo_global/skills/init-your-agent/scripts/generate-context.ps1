@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # generate-context.ps1 - Main context generation script (Windows)
 # =============================================================================
 [CmdletBinding()]
@@ -72,7 +72,7 @@ $userJson = (@{
 Log "Assembling..."
 
 # Parse each section into PSCustomObject for proper serialization
-$meta = @{ timestamp = $Timestamp; version = "2.1.0"; generator = "devcontext-init"; mode = if($Interactive){"interactive"} else {"batch"} }
+$meta = @{ timestamp = $Timestamp; version = "2.2.0"; generator = "init-your-agent"; mode = if($Interactive){"interactive"} else {"batch"} }
 
 $sys = if($systemJson){ $systemJson | ConvertFrom-Json } else { $Fallback | ConvertFrom-Json }
 $dev = if($devstackJson){ $devstackJson | ConvertFrom-Json } else { $Fallback | ConvertFrom-Json }

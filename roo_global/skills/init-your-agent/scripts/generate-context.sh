@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # =============================================================================
 # generate-context.sh - 上下文生成主脚本
 # 平台: Linux / macOS
@@ -14,16 +14,10 @@ ASSETS_DIR="$SKILL_DIR/assets"
 OUTPUT_FILE="$ASSETS_DIR/context-output.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-# 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
-log_step()  { echo -e "${BLUE}[STEP]${NC} $1"; }
+# 日志函数 (stderr only)
+log_info()  { echo "[INFO] $1" >&2; }
+log_warn()  { echo "[WARN] $1" >&2; }
+log_step()  { echo "[STEP] $1" >&2; }
 
 # 确保输出目录存在
 mkdir -p "$ASSETS_DIR"
@@ -35,7 +29,7 @@ if [[ "${1:-}" == "--interactive" ]] || [[ "${1:-}" == "-i" ]]; then
 fi
 
 log_info "============================================"
-log_info "  DevContext 上下文生成器 v1.0.0"
+log_info "  init-your-agent 上下文生成器 v2.2.0"
 log_info "  模式: $MODE"
 log_info "  时间戳: $TIMESTAMP"
 log_info "============================================"
@@ -166,8 +160,8 @@ if command -v jq &>/dev/null; then
 {
   "meta": {
     "timestamp": "$TIMESTAMP",
-    "version": "2.0.0",
-    "generator": "devcontext-init",
+    "version": "2.2.0",
+    "generator": "init-your-agent",
     "mode": "$MODE"
   },
   "system": $system_json,
@@ -212,8 +206,8 @@ with open('$OUTPUT_FILE', 'w') as f:
 {
   "meta": {
     "timestamp": "$TIMESTAMP",
-    "version": "2.0.0",
-    "generator": "devcontext-init",
+    "version": "2.2.0",
+    "generator": "init-your-agent",
     "mode": "$MODE"
   },
   "system": $system_json,
@@ -231,8 +225,8 @@ else
 {
   "meta": {
     "timestamp": "$TIMESTAMP",
-    "version": "2.0.0",
-    "generator": "devcontext-init",
+    "version": "2.2.0",
+    "generator": "init-your-agent",
     "mode": "$MODE"
   },
   "system": $system_json,

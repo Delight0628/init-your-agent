@@ -1,11 +1,18 @@
-﻿# detect-services.ps1 - Runtime services detection (Windows) - Pure JSON output only
+# detect-services.ps1 - Runtime services detection (Windows) - Pure JSON output only
 [CmdletBinding()]
 param()
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 function Test-Command { param([string]$Name) $null -ne (Get-Command $Name -ErrorAction SilentlyContinue) }
 function Get-Version {
     param([string]$Name, [string]$Flag = "--version")
-    try { & $Name $Flag 2>$null | Select-Object -First 1 } catch { "unavailable" }
+    try {
+        $raw = & $Name $Flag 2>$null | Select-Object -First 1
+        if (-not $raw) { return "unavailable" }
+        if ($raw -match '(\d+\.\d+(\.\d+)*)') { return $Matches[1] }
+        return ($raw -split '\s+')[-1]
+    } catch { return "unavailable" }
 }
 
 # Docker
